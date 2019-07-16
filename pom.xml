@@ -2,10 +2,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>no.uib</groupId>
+    
+    <groupId>org.bidib.no.uib</groupId>
     <artifactId>jsparklines</artifactId>
+    <version>1.0.10-SNAPSHOT</version>
     <packaging>jar</packaging>
-    <version>1.0.10</version>
+    
     <name>JSparklines</name>
     <description>Sparklines for Java tables</description>
     <url>https://github.com/compomics/jsparklines</url>
@@ -17,10 +19,19 @@
             <url>LICENSE-2.0.txt</url>
         </license>
     </licenses>
+    
+    <scm>
+        <connection>scm:git:https://github.com/akuhtz/jsparklines.git</connection>
+        <developerConnection>scm:git:https://github.com/akuhtz/jsparklines.git</developerConnection>
+        <url>https://github.com/akuhtz/jsparklines.git/</url>
+        <tag>HEAD</tag>
+    </scm>
+
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <gpg.useagent>true</gpg.useagent>
     </properties>
 
     <!-- Developers -->
@@ -54,22 +65,12 @@
             </resource>
         </resources>
 
-
-        <!-- Extensions -->
-        <extensions>
-            <extension>
-                <groupId>org.apache.maven.wagon</groupId>
-                <artifactId>wagon-ssh</artifactId>
-                <version>1.0-beta-2</version>
-            </extension>
-        </extensions>
-
         <plugins>
 
             <!-- Compiler plugin -->
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>2.5</version>
+                <version>3.8.0</version>
                 <configuration>
                     <source>1.6</source>
                     <target>1.6</target>
@@ -82,7 +83,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>2.4</version>
+                <version>3.1.1</version>
                 <configuration>
                     <archive>
                         <manifest>
@@ -99,6 +100,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.1.1</version>
                 <executions>
                     <execution>
                         <id>copy-dependencies</id>
@@ -119,7 +121,7 @@
             <!-- Resources plugin -->
             <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
-                <version>2.4</version>
+                <version>3.1.0</version>
 
                 <!-- Copy the resources -->
                 <executions>
@@ -152,10 +154,11 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.9.1</version>
+                <version>3.1.0</version>
                 <configuration>
-                    <destDir>docs/javadoc</destDir>
+                    <!--destDir>docs/javadoc</destDir-->
                     <notimestamp>true</notimestamp>
+                    <doclint>none</doclint>
                 </configuration>
                 <executions>
                     <execution>
@@ -171,7 +174,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
-                <version>2.1.1</version>
+                <version>3.0.1</version>
                 <executions>
                     <execution>
                         <id>attach-sources</id>
@@ -207,44 +210,8 @@
                 </executions>
             </plugin>
 
-            <!-- Deploy the JavaDoc as well -->
-            <!--<plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>wagon-maven-plugin</artifactId>
-                <version>1.0-beta-5</version>
-                <executions>
-                    <execution>
-                        <id>upload-javadoc</id>
-                        <phase>deploy</phase>
-                        <goals>
-                            <goal>upload</goal>
-                        </goals>
-                        <configuration>
-                            <fromDir>${project.build.directory}/apidocs</fromDir>
-                            <include>*</include>
-                            <serverId>genesis-maven2-repo</serverId>
-                            <url>scp://genesis.ugent.be/</url>
-                            <toDir>/home/maven/public_html/maven2/no/uib/jsparklines/javadoc/</toDir>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>-->
-
         </plugins>
     </build>
-
-
-    <!-- Repositores -->
-    <repositories>
-
-        <!-- JBoss Repository - needed for JFreeChart -->
-        <repository>
-            <id>JBOSS</id>
-            <name>JBoss Repository</name>
-            <url>http://repository.jboss.org/maven2/</url>
-        </repository>
-
-    </repositories>
 
 
     <!-- Dependencies -->
@@ -275,7 +242,7 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.10</version>
+            <version>4.12</version>
             <scope>test</scope>
             <type>jar</type>
             <exclusions>
@@ -288,24 +255,81 @@
 
     </dependencies>
     
+    <profiles>
+        <profile>
+            <id>release-sign-artifacts</id>
+            <activation>
+                <property>
+                    <name>performRelease</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-deploy-plugin</artifactId>
+                        <version>3.0.0-M1</version>
+                        <inherited>true</inherited>
+                        <configuration>
+                            <updateReleaseInfo>true</updateReleaseInfo>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                                <!-- add this to disable checking -->
+                                <configuration>
+                                    <doclint>none</doclint>
+                                    <!--
+                                    <additionalparam>${javadoc.opts}</additionalparam>
+                                    -->
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.6</version>
+                        <configuration>
+                            <passphrase>${gpg.passphrase}</passphrase>
+                            <useAgent>${gpg.useagent}</useAgent>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
     
     <!-- The deployment maven repository-->
     <distributionManagement>
-        
-        <!-- UGent Genesis archiva repository -->
-        <repository>
-            <id>archiva.compomics_maven_2</id>
-            <name>Internal Release Repository</name>
-            <url>http://genesis.ugent.be/archiva/repository/compomics_maven_2</url>
-        </repository>
-         
-        <!-- UGent Genesis archiva snapshot repository -->
         <snapshotRepository>
-            <id>archiva.snapshots</id>
-            <name>Internal Snapshot Repository</name>
-            <url>http://genesis.ugent.be/archiva/repository/snapshots</url>
+            <id>sonatype-nexus-snapshots</id>
+            <name>Sonatype Nexus Snapshots</name>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
         </snapshotRepository>
-        
+        <repository>
+            <id>sonatype-nexus-staging</id>
+            <name>Nexus Staging Repository</name>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
     </distributionManagement>
     
 </project>
